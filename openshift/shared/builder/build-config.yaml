@@ -1,0 +1,16 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: dummy-image
+spec:
+  runPolicy: Serial
+  output:
+    to:
+      kind: ImageStreamTag
+      name: dummy-image:latest
+  source:
+    # Binary build: the Dockerfile is provided at build time.
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy: {}

@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tas-test-sign-verify
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          volumes:
+            - name: sa-token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      path: oidc-token
+                      expirationSeconds: 600
+                      audience: "sigstore"
+          containers:
+            - name: cosign
+              image: registry.redhat.io/rhtas/cosign-rhel9:1.1.1
+              volumeMounts:
+                - name: sa-token
+                  mountPath: /var/run/secrets/tokens
+                  readOnly: true
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: "metadata.namespace"
+                - name: FULCIO_URL
+                  value: "https://fulcio-server-$(NAMESPACE).${APPS_DOMAIN}"
+                - name: REKOR_URL
+                  value: "https://rekor-server-$(NAMESPACE).${APPS_DOMAIN}"
+                - name: TUF_URL
+                  value: "https://tuf-$(NAMESPACE).${APPS_DOMAIN}"
+                - name: TOKEN_PATH
+                  value: "/var/run/secrets/tokens/oidc-token"
+                - name: OIDC_ISSUER_URL
+                  value: "https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer"
+                - name: TSA_URL
+                  value: "https://tsa-server-$(NAMESPACE).${APPS_DOMAIN}"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TOKEN=$(curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "username=jdoe" -d "password=secure" -d "grant_type=password" -d "scope=openid" -d "client_id=trusted-artifact-signer" $OIDC_ISSUER_URL/protocol/openid-connect/token |  sed -E 's/.*"access_token":"([^"]*).*/\1/')
+                  cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
+                  
+                  IMAGE_NAME=$(head /dev/urandom | tr -dc 'a-z0-9' | head -c 16)
+                  IMAGE=ttl.sh/$IMAGE_NAME:2min
+                  cosign copy "mirror.gcr.io/alpine:latest" $IMAGE
+                  
+                  cosign sign -y --fulcio-url=$FULCIO_URL --rekor-url=$REKOR_URL --timestamp-server-url=$TSA_URL/api/v1/timestamp --identity-token=$TOKEN --oidc-issuer=$OIDC_ISSUER_URL --oidc-client-id=trusted-artifact-signer $IMAGE
+                  sleep 5
+                  echo "Verify"
+                  cosign verify --rekor-url=$REKOR_URL --timestamp-certificate-chain=$HOME/.sigstore/root/targets/tsa.certchain.pem --certificate-identity "jdoe@redhat.com" --certificate-oidc-issuer $OIDC_ISSUER_URL --use-signed-timestamps=true $IMAGE
+          restartPolicy: Never

@@ -1,0 +1,23 @@
+apiVersion: rhtas.redhat.com/v1alpha1
+kind: Securesign
+metadata:
+  name: trusted-artifact-signer
+spec:
+  fulcio:
+    certificate:
+      commonName: fulcio-rhtas-testing.${APPS_DOMAIN}
+  tsa:
+    signer:
+      certificateChain:
+        intermediateCA:
+          - commonName: tsa-server-rhtas-testing.${APPS_DOMAIN}
+            organizationEmail: jdoe@redhat.com
+            organizationName: Red Hat
+        leafCA:
+          commonName: tsa-server-rhtas-testing.${APPS_DOMAIN}
+          organizationEmail: jdoe@redhat.com
+          organizationName: Red Hat
+        rootCA:
+          commonName: tsa-server-rhtas-testing.${APPS_DOMAIN}
+          organizationEmail: jdoe@redhat.com
+          organizationName: Red Hat

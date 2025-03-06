@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-searchui
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: rekor-ui
+      app.kubernetes.io/name: rekor-search-ui
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress

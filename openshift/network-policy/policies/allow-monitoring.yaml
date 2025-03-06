@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring
+  namespace: your-namespace
+spec:
+  podSelector: {}  # Applies to all pods in the namespace
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: openshift-monitoring

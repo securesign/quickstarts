@@ -1,0 +1,85 @@
+apiVersion: rhtas.redhat.com/v1alpha1
+kind: Securesign
+metadata:
+  annotations:
+    rhtas.redhat.com/metrics: 'false'
+  name: trusted-artifact-signer
+  labels:
+    app.kubernetes.io/instance: trusted-artifact-signer
+    app.kubernetes.io/name: trusted-artifact-signer
+    app.kubernetes.io/part-of: trusted-artifact-signer
+spec:
+  ctlog:
+    monitoring:
+      enabled: true
+  fulcio:
+    certificate:
+      commonName: PLACEHOLDER
+      organizationEmail: rhtas@redhat.com
+      organizationName: Red Hat
+    config:
+      OIDCIssuers:
+        - ClientID: trusted-artifact-signer
+          Issuer: 'https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer'
+          IssuerURL: 'https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer'
+          Type: email
+        - ClientID: sigstore
+          Issuer: 'https://oauth2.sigstore.dev/auth'
+          IssuerClaim: $.federated_claims.connector_id
+          IssuerURL: 'https://oauth2.sigstore.dev/auth'
+          Type: email
+      MetaIssuers:
+        - ClientID: sigstore
+          Issuer: "https://rh-oidc.*.*.amazonaws.com/*"
+          Type: kubernetes
+#        - ClientID: sigstore
+#          Issuer: "https://kubernetes.*.svc"
+#          Type: kubernetes
+    externalAccess:
+      enabled: true
+    monitoring:
+      enabled: true
+  rekor:
+    backFillRedis:
+      enabled: true
+      schedule: 0 0 * * *
+    externalAccess:
+      enabled: true
+    monitoring:
+      enabled: true
+    rekorSearchUI:
+      enabled: true
+    signer:
+      kms: secret
+  trillian:
+    database:
+      create: true
+    monitoring:
+      enabled: true
+  tsa:
+    externalAccess:
+      enabled: true
+    monitoring:
+      enabled: true
+    signer:
+      certificateChain:
+        intermediateCA:
+          - commonName: PLACEHOLDER
+            organizationEmail: jdoe@redhat.com
+            organizationName: Red Hat
+        leafCA:
+          commonName: PLACEHOLDER
+          organizationEmail: jdoe@redhat.com
+          organizationName: Red Hat
+        rootCA:
+          commonName: PLACEHOLDER
+          organizationEmail: jdoe@redhat.com
+          organizationName: Red Hat
+  tuf:
+    externalAccess:
+      enabled: true
+    keys:
+      - name: rekor.pub
+      - name: ctfe.pub
+      - name: fulcio_v1.crt.pem
+      - name: tsa.certchain.pem
