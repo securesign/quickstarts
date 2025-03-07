@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-tsa
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: timestamp-authority
+      app.kubernetes.io/name: tsa-server
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress

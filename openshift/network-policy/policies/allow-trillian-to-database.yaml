@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-trillian-logserver-to-database
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: trillian-logserver
+      app.kubernetes.io/name: trillian-logserver
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: x.x.x.x/32  # Replace with the actual IP or subnet of your database
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-trillian-logsigner-to-database
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: trillian-logsigner
+      app.kubernetes.io/name: trillian-logsigner
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: x.x.x.x/32  # Replace with the actual IP or subnet of your database

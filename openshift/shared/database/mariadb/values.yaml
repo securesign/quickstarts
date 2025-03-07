@@ -1,0 +1,15 @@
+# values.yaml
+primary:
+  persistence:
+    enabled: true
+    size: 8Gi
+auth:
+  rootPassword: "your-root-password"
+  database: "trillian"
+  username: "dbuser"
+  password: "userpassword"
+initdbScriptsConfigMap: initdb-scripts
+global:
+  compatibility:
+    openshift:
+      adaptSecurityContext: force

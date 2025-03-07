@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tas-test-sign-verify
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          volumes:
+            - name: sa-token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      path: oidc-token
+                      expirationSeconds: 600
+                      audience: "sigstore"
+          containers:
+            - name: cosign
+              image: registry.redhat.io/rhtas/cosign-rhel9:1.1.1
+              volumeMounts:
+                - name: sa-token
+                  mountPath: /var/run/secrets/tokens
+                  readOnly: true
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: "metadata.namespace"
+                - name: FULCIO_URL
+                  value: "https://fulcio-server-$(NAMESPACE).${APPS_DOMAIN}"
+                - name: REKOR_URL
+                  value: "https://rekor-server-$(NAMESPACE).${APPS_DOMAIN}"
+                - name: TUF_URL
+                  value: "https://tuf-$(NAMESPACE).${APPS_DOMAIN}"
+                - name: TOKEN_PATH
+                  value: "/var/run/secrets/tokens/oidc-token"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TOKEN=$(cat $TOKEN_PATH)
+                  PAYLOAD=$(echo $TOKEN | cut -d '.' -f2 | tr '_-' '/+' | base64 -d 2>/dev/null)
+
+                  OIDC_ISSUER=$(echo "$PAYLOAD" | sed -n 's/.*"iss":"\([^"]*\)".*/\1/p')
+
+                  echo "OIDC Issuer: $OIDC_ISSUER"
+                  
+                  cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
+                  
+                  IMAGE_NAME=$(head /dev/urandom | tr -dc 'a-z0-9' | head -c 16)
+                  IMAGE=ttl.sh/$IMAGE_NAME:2min
+                  cosign copy "mirror.gcr.io/alpine:latest" $IMAGE
+                  
+                  cosign sign -y --fulcio-url=$FULCIO_URL --rekor-url=$REKOR_URL --identity-token=$TOKEN $IMAGE
+                  
+                  echo "Verify signature"
+                  cosign verify --rekor-url=$REKOR_URL --timestamp-certificate-chain=$HOME/.sigstore/root/targets/tsa.certchain.pem --certificate-identity "https://kubernetes.io/namespaces/$NAMESPACE/serviceaccounts/default" --certificate-oidc-issuer $OIDC_ISSUER --use-signed-timestamps=true $IMAGE
+          restartPolicy: Never

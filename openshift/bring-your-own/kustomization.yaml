@@ -1,0 +1,82 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rhtas-byo
+
+resources:
+  - namespace.yaml
+  - ../shared/securesign
+  - ../shared/cosign
+
+labels:
+  - includeSelectors: true
+    pairs:
+      environment: byo
+
+patches:
+  - path: patch.yaml
+
+secretGenerator:
+  - name: mariadb
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - mysql-database=trillian
+      - mysql-host=mariadb.rhtas-mariadb.svc.cluster.local
+      - mysql-password=userpassword
+      - mysql-port=3306
+      - mysql-root-password=your-root-password
+      - mysql-user=dbuser
+  - name: fulcio-signer
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - key=keys/fulcio.pem
+      - password=keys/password
+  - name: fulcio-public
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - public=keys/fulcio-public.pem
+      - cert=keys/fulcio-root.pem
+  - name: rekor-signer
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - key=keys/rekor.pem
+  - name: rekor-public
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - public=keys/rekor-public.pem
+  - name: ctlog-signer
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - key=keys/ctlog.pem
+      - password=keys/password
+  - name: ctlog-public
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - public=keys/ctlog-public.pem
+  - name: tsa-signer
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - key=keys/tsa/leafCA.key.pem
+    literals:
+      - password=secure
+  - name: tsa-public
+    behavior: create
+    options:
+      disableNameSuffixHash: true
+    files:
+      - chain=keys/tsa/cert-chain.pem

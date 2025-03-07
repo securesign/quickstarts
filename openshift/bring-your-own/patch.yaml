@@ -1,0 +1,79 @@
+apiVersion: rhtas.redhat.com/v1alpha1
+kind: Securesign
+metadata:
+  annotations:
+    rhtas.redhat.com/metrics: 'true'
+  name: trusted-artifact-signer
+spec:
+  ctlog:
+    privateKeyRef:
+      key: key
+      name: ctlog-signer
+    privateKeyPasswordRef:
+      key: password
+      name: ctlog-signer
+    publicKeyRef:
+      key: public
+      name: ctlog-public
+    rootCertificates:
+      - name: fulcio-public
+        key: cert
+  fulcio:
+    certificate:
+      commonName:
+      organizationEmail:
+      organizationName:
+      caRef:
+        key: cert
+        name: fulcio-public
+      privateKeyPasswordRef:
+        key: password
+        name: fulcio-signer
+      privateKeyRef:
+        key: key
+        name: fulcio-signer
+  rekor:
+    signer:
+      keyRef:
+        key: key
+        name: rekor-signer
+      kms: secret
+  trillian:
+    database:
+      create: false
+      databaseSecretRef:
+        name: mariadb
+  tuf:
+    keys:
+      - name: rekor.pub
+        secretRef:
+          key: public
+          name: rekor-public
+      - name: ctfe.pub
+        secretRef:
+          key: public
+          name: ctlog-public
+      - name: fulcio_v1.crt.pem
+        secretRef:
+          key: cert
+          name: fulcio-public
+      - name: tsa.certchain.pem
+        secretRef:
+          key: chain
+          name: tsa-public
+  tsa:
+    signer:
+      certificateChain:
+        intermediateCA:
+        leafCA:
+        rootCA:
+        certificateChainRef:
+          name: tsa-public
+          key: chain
+      file:
+        privateKeyRef:
+          key: key
+          name: tsa-signer
+        passwordRef:
+          key: password
+          name: tsa-signer

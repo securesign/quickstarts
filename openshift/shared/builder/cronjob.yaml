@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dummy-image-builder
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: build-bot
+          containers:
+            - name: build-trigger
+              image: openshift/origin-cli:latest
+              workingDir: /tmp
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e
+                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                  cat <<EOF > Dockerfile
+                  FROM alpine:latest
+                  LABEL created="${TIMESTAMP}"
+                  RUN echo "Dummy image built on ${TIMESTAMP}" > /dummy.txt
+                  EOF
+                  echo "Starting build with timestamp ${TIMESTAMP}"
+                  oc start-build dummy-image --from-file=Dockerfile --follow
+          restartPolicy: OnFailure
