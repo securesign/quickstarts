@@ -4,9 +4,9 @@ namespace: rhtas-network-policy
 
 resources:
 - namespace.yaml
-- ../shared/cosign
 - ../shared/securesign
 - policies/
+- ../shared/cosign
 
 patches:
   - path: patch.yaml
