@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rhtas-custom-ingress
+
+resources:
+- namespace.yaml
+- routes/fulcio.yaml
+- routes/rekor.yaml
+- routes/search-ui.yaml
+- routes/tsa.yaml
+- routes/tuf.yaml
+- ../shared/securesign
+
+labels:
+- includeSelectors: true
+  pairs:
+    environment: custom-ingress
+
+patches:
+  - path: patch.yaml
