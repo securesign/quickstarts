@@ -1,0 +1,16 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: tsa
+spec:
+  subdomain: tsa
+  path: /
+  to:
+    kind: Service
+    name: tsa-server
+    weight: 100
+  port:
+    targetPort: tsa-server
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

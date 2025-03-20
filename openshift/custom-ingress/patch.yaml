@@ -1,0 +1,33 @@
+apiVersion: rhtas.redhat.com/v1alpha1
+kind: Securesign
+metadata:
+  name: trusted-artifact-signer
+spec:
+  fulcio:
+    externalAccess:
+      enabled: false
+    certificate:
+      commonName: fulcio.custom-ingress.${APPS_DOMAIN}
+  rekor:
+    externalAccess:
+      enabled: false
+  tuf:
+    externalAccess:
+      enabled: false
+  tsa:
+    externalAccess:
+      enabled: false
+    signer:
+      certificateChain:
+        intermediateCA:
+          - commonName: tsa.custom-ingress.${APPS_DOMAIN}
+            organizationEmail: jdoe@redhat.com
+            organizationName: Red Hat
+        leafCA:
+          commonName: tsa.custom-ingress.${APPS_DOMAIN}
+          organizationEmail: jdoe@redhat.com
+          organizationName: Red Hat
+        rootCA:
+          commonName: tsa.custom-ingress.${APPS_DOMAIN}
+          organizationEmail: jdoe@redhat.com
+          organizationName: Red Hat
