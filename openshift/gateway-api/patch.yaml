@@ -1,0 +1,21 @@
+- op: replace
+  path: /metadata/namespace
+  value: rhtas-gateway-api
+
+- op: remove
+  path: /spec/tsa
+
+- op: replace
+  path: /spec/fulcio/externalAccess/enabled
+  value: false
+
+- op: replace
+  path: /spec/rekor/externalAccess/enabled
+  value: false
+
+- op: replace
+  path: /spec/tuf/externalAccess/enabled
+  value: false
+
+- op: remove
+  path: /spec/tuf/keys/3
