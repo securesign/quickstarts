@@ -1,0 +1,72 @@
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: fulcio
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: fulcio
+  limits:
+    "per-user":
+      rates:
+        - limit: 5
+          window: 10s
+      counters:
+        - expression: auth.identity.userid
+---
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: rekor
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: rekor
+  limits:
+    "per-user":
+      rates:
+        - limit: 5
+          window: 10s
+      counters:
+        - expression: auth.identity.userid
+---
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: tuf
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: tuf
+  limits:
+    "per-user":
+      rates:
+        - limit: 10
+          window: 10s
+      counters:
+        - expression: auth.identity.userid
+---
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: search-ui
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: search-ui
+  limits:
+    "per-user":
+      rates:
+        - limit: 100
+          window: 10s
+      counters:
+        - expression: auth.identity.userid
+---
