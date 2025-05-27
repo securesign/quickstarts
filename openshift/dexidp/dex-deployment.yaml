@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dex-idp
+  namespace: dex-idp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dex-idp
+  template:
+    metadata:
+      labels:
+        app: dex-idp
+    spec:
+      containers:
+      - name: dex-idp
+        image: quay.io/asiek/dexidp:v2.32.0
+        command: ["dex"]
+        args: ["serve", "/etc/dex/config.yaml"]
+        ports:
+        - containerPort: 5556 # Web interface
+          name: http
+        - containerPort: 8082 # Telemetry
+          name: telemetry
+        volumeMounts:
+        - name: dex-config
+          mountPath: /etc/dex
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: dex/healthz
+            port: 5556
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: dex/healthz
+            port: 5556
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      volumes:
+      - name: dex-config
+        configMap:
+          name: dex-config
