@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: tas-test-sign-verify
+  name: k8s-tas-test-sign-verify
 spec:
   schedule: "*/10 * * * *"
   jobTemplate:
@@ -42,8 +42,8 @@ spec:
                 - |
                   set -e
                   TOKEN=$(cat $TOKEN_PATH)
-                  PAYLOAD=$(echo $TOKEN | cut -d '.' -f2 | tr '_-' '/+' | base64 -d 2>/dev/null)
-
+                  PAYLOAD_BASE64=$(echo "$TOKEN" | cut -d '.' -f2 | tr '_-' '/+') 
+                  PAYLOAD=$(echo "$PAYLOAD_BASE64=" | base64 -d)
                   OIDC_ISSUER=$(echo "$PAYLOAD" | sed -n 's/.*"iss":"\([^"]*\)".*/\1/p')
 
                   echo "OIDC Issuer: $OIDC_ISSUER"
