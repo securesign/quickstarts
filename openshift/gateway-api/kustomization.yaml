@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- namespace.yaml
+- ../shared/ossm
+- ../shared/kuadrant
+- ../shared/securesign
+- gateway/fulcio.yaml
+- gateway/rekor.yaml
+- gateway/search.yaml
+- gateway/tuf.yaml
+- route.yaml
+- serviceaccount.yaml
+- kuadrant/authpolicy.yaml
+- kuadrant/ratelimitpolicy.yaml
+- kuadrant/roles.yaml
+
+patches:
+  - path: patch.yaml
+    target:
+      name: trusted-artifact-signer
+      kind: Securesign

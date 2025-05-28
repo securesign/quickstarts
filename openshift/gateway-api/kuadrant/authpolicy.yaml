@@ -1,0 +1,132 @@
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: fulcio-protection
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: fulcio
+    sectionName: rule-1
+  rules:
+    authentication:
+      "k8s-service-accounts":
+        kubernetesTokenReview:
+          audiences:
+            - "${SERVICE_ACCOUNT_ISSUER}"
+        overrides:
+          "sub":
+            selector: auth.identity.user.username
+    authorization:
+      "k8s-rbac":
+        kubernetesSubjectAccessReview:
+          user:
+            selector: auth.identity.sub
+    response:
+      success:
+        filters:
+          "identity":
+            json:
+              properties:
+                "userid":
+                  selector: auth.identity.sub
+---
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: rekor-protection
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: rekor
+  rules:
+    authentication:
+      "k8s-service-accounts":
+        kubernetesTokenReview:
+          audiences:
+            - "${SERVICE_ACCOUNT_ISSUER}"
+        overrides:
+          "sub":
+            selector: auth.identity.user.username
+    authorization:
+      "k8s-rbac":
+        kubernetesSubjectAccessReview:
+          user:
+            selector: auth.identity.sub
+    response:
+      success:
+        filters:
+          "identity":
+            json:
+              properties:
+                "userid":
+                  selector: auth.identity.sub
+---
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: search-ui-protection
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: search-ui
+  rules:
+    authentication:
+      "k8s-service-accounts":
+        kubernetesTokenReview:
+          audiences:
+            - "${SERVICE_ACCOUNT_ISSUER}"
+        overrides:
+          "sub":
+            selector: auth.identity.user.username
+    authorization:
+      "k8s-rbac":
+        kubernetesSubjectAccessReview:
+          user:
+            selector: auth.identity.sub
+    response:
+      success:
+        filters:
+          "identity":
+            json:
+              properties:
+                "userid":
+                  selector: auth.identity.sub
+---
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: tuf-protection
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: tuf
+  rules:
+    authentication:
+      "k8s-service-accounts":
+        kubernetesTokenReview:
+          audiences:
+            - "${SERVICE_ACCOUNT_ISSUER}"
+        overrides:
+          "sub":
+            selector: auth.identity.user.username
+    authorization:
+      "k8s-rbac":
+        kubernetesSubjectAccessReview:
+          user:
+            selector: auth.identity.sub
+    response:
+      success:
+        filters:
+          "identity":
+            json:
+              properties:
+                "userid":
+                  selector: auth.identity.sub
