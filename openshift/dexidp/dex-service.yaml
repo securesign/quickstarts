@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dex-idp
+  namespace: dex-idp
+spec:
+  selector:
+    app: dex-idp
+  ports:
+  - protocol: TCP
+    port: 5556 # External port for the service
+    targetPort: 5556 # Container port
+    name: http
+  - protocol: TCP
+    port: 8082 # External port for telemetry
+    targetPort: 8082 # Container port
+    name: telemetry

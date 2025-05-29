@@ -1,0 +1,14 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dex-idp-route
+  namespace: dex-idp
+spec:
+  to:
+    kind: Service
+    name: dex-idp
+  port:
+    targetPort: http # Matches the 'name' of the port in the Service
+  tls:
+    termination: edge
+  wildcardPolicy: None
