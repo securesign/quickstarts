@@ -30,7 +30,7 @@ spec:
           Type: email
       MetaIssuers:
         - ClientID: sigstore
-          Issuer: "https://rh-oidc.*.*.amazonaws.com/*"
+          Issuer: "https://*.*.*.amazonaws.com/*"
           Type: kubernetes
 #        - ClientID: sigstore
 #          Issuer: "https://kubernetes.*.svc"

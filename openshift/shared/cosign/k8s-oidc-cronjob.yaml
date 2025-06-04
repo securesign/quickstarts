@@ -37,13 +37,15 @@ spec:
                   value: "https://tuf-$(NAMESPACE).${APPS_DOMAIN}"
                 - name: TOKEN_PATH
                   value: "/var/run/secrets/tokens/oidc-token"
+                - name: SSL_CERT_DIR
+                  value: /var/run/secrets/kubernetes.io/serviceaccount
               command: ["/bin/sh", "-c"]
               args:
                 - |
-                  set -e
+                  set -e -u -o pipefail
                   TOKEN=$(cat $TOKEN_PATH)
-                  PAYLOAD_BASE64=$(echo "$TOKEN" | cut -d '.' -f2 | tr '_-' '/+') 
-                  PAYLOAD=$(echo "$PAYLOAD_BASE64=" | base64 -d)
+                  PAYLOAD_BASE64URL=$(echo "$TOKEN" | cut -d '.' -f2) 
+                  PAYLOAD=$(echo "$PAYLOAD_BASE64URL" | basenc --base64url -d)
                   OIDC_ISSUER=$(echo "$PAYLOAD" | sed -n 's/.*"iss":"\([^"]*\)".*/\1/p')
 
                   echo "OIDC Issuer: $OIDC_ISSUER"
