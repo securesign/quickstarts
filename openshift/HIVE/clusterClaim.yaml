@@ -1,0 +1,7 @@
+apiVersion: hive.openshift.io/v1
+kind: ClusterClaim
+metadata:
+  name: rhtas-aws
+  namespace: rhtas
+spec:
+  clusterPoolName: aws-sno
