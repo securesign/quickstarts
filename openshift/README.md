@@ -5,3 +5,4 @@
 3. [Custom Ingress](./custom-ingress/README.md)
 4. [Gateway API](./gateway-api/README.md)
 5. [Dex IDP](./dexidp/README.md)
+6. [HIVE Claiming](./HIVE/README.md)
