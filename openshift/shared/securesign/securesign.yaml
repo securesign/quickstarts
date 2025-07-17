@@ -28,13 +28,14 @@ spec:
           IssuerClaim: $.federated_claims.connector_id
           IssuerURL: 'https://oauth2.sigstore.dev/auth'
           Type: email
+        - ClientID: sigstore
+          Issuer: https://kubernetes.default.svc
+          IssuerURL: https://kubernetes.default.svc
+          Type: kubernetes
       MetaIssuers:
         - ClientID: sigstore
           Issuer: "https://*.*.*.amazonaws.com/*"
           Type: kubernetes
-#        - ClientID: sigstore
-#          Issuer: "https://kubernetes.*.svc"
-#          Type: kubernetes
     externalAccess:
       enabled: true
     monitoring:
