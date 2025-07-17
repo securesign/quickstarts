@@ -44,8 +44,9 @@ spec:
                 - |
                   set -e -u -o pipefail
                   TOKEN=$(cat $TOKEN_PATH)
-                  PAYLOAD_BASE64URL=$(echo "$TOKEN" | cut -d '.' -f2) 
-                  PAYLOAD=$(echo "$PAYLOAD_BASE64URL" | basenc --base64url -d)
+                  PAYLOAD_BASE64URL=$(echo "$TOKEN" | cut -d '.' -f2)
+                  # ignoring error from basenc command because old version requires padding which is optional for base64url
+                  PAYLOAD=$(echo "$PAYLOAD_BASE64URL" | basenc --base64url -d 2>/dev/null || true)
                   OIDC_ISSUER=$(echo "$PAYLOAD" | sed -n 's/.*"iss":"\([^"]*\)".*/\1/p')
 
                   echo "OIDC Issuer: $OIDC_ISSUER"
