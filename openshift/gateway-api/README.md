@@ -1,16 +1,21 @@
 # Gateway API
 This example demonstrates how to secure Red Hat Trusted Artifact Signer (RHTAS) services using Kubernetes Gateway API
-and Kuadrant. It shows how to enforce authentication, authorization and rate limiting on RHTAS endpoints via
-Kubernetes Service Account tokens and ClusterRoles. The scenario includes:
+and Red Hat Connectivity Link. It shows how to enforce authentication, authorization and rate limiting on RHTAS 
+endpoints via Kubernetes Service Account tokens and ClusterRoles. The scenario includes:
 - Authentication via Authorization: Bearer $TOKEN headers
 - Role-based access control with `rhtas-reader` and `rhtas-writer` ClusterRoles
-- Rate limiting via Kuadrant policies
+- Rate limiting via Connectivity Link policies
 - A workaround for the cosign CLI's lack of authentication support using `mitmproxy`
 
 ## Prerequisites
 
-- Ensure you are logged in to an OpenShift cluster.
-- [mitmproxy](https://mitmproxy.org/)
+- OpenShift Container Platform 4.19 or later (required for native Gateway API CRD support)
+- The RHTAS (SecureSign) operator must be installed on the cluster
+- Red Hat subscription with access to Red Hat Connectivity Link
+- [mitmproxy](https://mitmproxy.org/) (for signing container images)
+
+> **Note:** This quickstart requires OpenShift 4.19+ which includes Gateway API CRDs managed by the
+> OpenShift Ingress Operator. Older OpenShift versions are not supported.
 
 ## How to Deploy
 
@@ -70,9 +75,10 @@ curl -H "Authorization: Bearer $TOKEN" -X POST $FULCIO_URL/api/v2/signingCert -i
 ```
 
 ### Try the API rate limited
-Each service account is subject to a rate limiting policy defined by Kuadrant. The default configuration enforces a
-limit of 5 requests every 10 seconds per service account identity. When the rate limit is exceeded, the API will return
-a 429 Too Many Requests response. This behavior helps to prevent abuse or accidental overload of the RHTAS services.
+Each service account is subject to a rate limiting policy defined by Connectivity Link. The default configuration 
+enforces a limit of 5 requests every 10 seconds per service account identity. When the rate limit is exceeded, the 
+API will return a 429 Too Many Requests response. This behavior helps to prevent abuse or accidental overload of the 
+RHTAS services.
 
 You can test rate limiting using the following loop:
 ```sh
@@ -81,7 +87,7 @@ while :; do curl --write-out '%{http_code}\n' --silent --output /dev/null -H "Au
 
 This loop continuously sends requests and highlights when the rate limit is hit.
 
-The rate limit policy is configured using Kuadrant's RateLimitPolicy custom resource, which can be tuned to apply
+The rate limit policy is configured using the RateLimitPolicy custom resource, which can be tuned to apply
 different limits based on service account identity, HTTP paths, or request methods.
 
 ### Try to sign container image
