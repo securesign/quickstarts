@@ -47,7 +47,7 @@ spec:
   limits:
     "per-user":
       rates:
-        - limit: 10
+        - limit: 50
           window: 10s
       counters:
         - expression: auth.identity.userid

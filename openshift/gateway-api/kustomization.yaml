@@ -3,8 +3,6 @@ kind: Kustomization
 
 resources:
 - namespace.yaml
-- ../shared/ossm
-- ../shared/kuadrant
 - ../shared/securesign
 - gateway/fulcio.yaml
 - gateway/rekor.yaml
