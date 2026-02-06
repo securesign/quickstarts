@@ -22,8 +22,11 @@ wait-for-keycloaks-crd:
 install-keycloak: install-keycloak-operator wait-for-keycloaks-crd
 	kubectl apply -k 'github.com/securesign/secure-sign-operator/ci/keycloak/resources/base?ref=release-1.1'
 
+# Using Red Hat SCLORG MariaDB image (registry.redhat.io/rhel9/mariadb-1011)
+# instead of Bitnami due to Bitnami's move to paid subscription model.
+# See: https://github.com/bitnami/charts/issues/35164
 install-mariadb:
-	kustomize build --enable-helm ../shared/database/mariadb | kubectl apply -f -
+	kustomize build ../shared/database/mariadb | kubectl apply -f -
 
 build: $(TARGET_DIR)
 	kustomize build . | envsubst '$${APPS_DOMAIN}' > target/installer.yaml
