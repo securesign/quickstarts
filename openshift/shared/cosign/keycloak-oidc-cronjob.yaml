@@ -52,7 +52,7 @@ spec:
                   
                   IMAGE_NAME=$(head /dev/urandom | tr -dc 'a-z0-9' | head -c 16)
                   IMAGE=ttl.sh/$IMAGE_NAME:2min
-                  cosign copy "mirror.gcr.io/alpine:latest" $IMAGE
+                  cosign copy --platform linux/amd64 "registry.k8s.io/pause:3.9" $IMAGE
                   
                   cosign sign -y --fulcio-url=$FULCIO_URL --rekor-url=$REKOR_URL --timestamp-server-url=$TSA_URL/api/v1/timestamp --identity-token=$TOKEN --oidc-issuer=$OIDC_ISSUER_URL --oidc-client-id=trusted-artifact-signer $IMAGE
                   sleep 5
