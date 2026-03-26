@@ -12,4 +12,4 @@ spec:
       discoverySelectors:
         - matchLabels:
             istio-discovery: enabled
-  version: v1.24-latest
+  version: v1.28-latest
