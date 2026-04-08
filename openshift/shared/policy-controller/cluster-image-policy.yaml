@@ -1,0 +1,19 @@
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: rhtas-cluster-image-policy
+spec:
+  images:
+    - glob: "**"
+  authorities:
+    - keyless:
+        url: $FULCIO_URL
+        trustRootRef: rhtas-trust-root
+        identities:
+          - issuer: $OIDC_ISSUER_URL
+            subject: $OIDC_SUBJECT
+      ctlog:
+        url: $REKOR_URL
+        trustRootRef: rhtas-trust-root
+      rfc3161timestamp:
+        trustRootRef: rhtas-trust-root

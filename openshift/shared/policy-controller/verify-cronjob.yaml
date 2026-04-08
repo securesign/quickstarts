@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: policy-controller-test-ns
+  labels:
+    policy.rhtas.com/include: "true"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: policy-controller-test-verify
+  namespace: policy-controller-operator
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          volumes:
+            - name: shared-bin
+              emptyDir: {}
+          initContainers:
+            - name: oc-cli
+              image: registry.redhat.io/openshift4/ose-cli:latest
+              command: ["/bin/sh", "-c"]
+              args:
+                - cp /usr/bin/oc /shared-bin/oc
+              volumeMounts:
+                - name: shared-bin
+                  mountPath: /shared-bin
+          containers:
+            - name: cosign
+              image: registry.redhat.io/rhtas/cosign-rhel9:1.3.3
+              volumeMounts:
+                - name: shared-bin
+                  mountPath: /shared-bin
+              env:
+                - name: PATH
+                  value: "/shared-bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                - name: FULCIO_URL
+                  value: "$FULCIO_URL"
+                - name: REKOR_URL
+                  value: "$REKOR_URL"
+                - name: TUF_URL
+                  value: "$TUF_URL"
+                - name: OIDC_ISSUER_URL
+                  value: "$OIDC_ISSUER_URL"
+                - name: SSL_CERT_DIR
+                  value: /var/run/secrets/kubernetes.io/serviceaccount
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -e -u -o pipefail
+                  TOKEN=$(curl -X POST --insecure -H "Content-Type: application/x-www-form-urlencoded" -d "username=jdoe" -d "password=secure" -d "grant_type=password" -d "scope=openid" -d "client_id=trusted-artifact-signer" $OIDC_ISSUER_URL/protocol/openid-connect/token |  sed -E 's/.*"access_token":"([^"]*).*/\1/')
+                  cosign initialize --mirror=$TUF_URL --root=$TUF_URL/root.json
+                  
+                  IMAGE_NAME=$(head /dev/urandom | tr -dc 'a-z0-9' | head -c 16)
+                  IMAGE=ttl.sh/$IMAGE_NAME:2min
+                  cosign copy --platform linux/amd64 "registry.k8s.io/pause:3.9" $IMAGE
+
+                  if oc -n policy-controller-test-ns run unsigned-test --image=$IMAGE --restart=Never 2>/dev/null; then
+                    echo "FAIL: Unsigned image was accepted by policy controller"
+                    oc -n policy-controller-test-ns delete pod unsigned-test --ignore-not-found
+                    exit 1
+                  fi
+
+                  cosign sign -y --fulcio-url=$FULCIO_URL --rekor-url=$REKOR_URL --identity-token=$TOKEN --oidc-issuer=$OIDC_ISSUER_URL --oidc-client-id=trusted-artifact-signer $IMAGE
+
+                  sleep 5
+                  oc -n policy-controller-test-ns run signed-test --image=$IMAGE --restart=Never
+                  oc -n policy-controller-test-ns delete pod signed-test --ignore-not-found
+          restartPolicy: Never
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: policy-controller-test-pod-manager
+  namespace: policy-controller-test-ns
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: policy-controller-test-pod-manager
+  namespace: policy-controller-test-ns
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: policy-controller-operator
+roleRef:
+  kind: Role
+  name: policy-controller-test-pod-manager
+  apiGroup: rbac.authorization.k8s.io

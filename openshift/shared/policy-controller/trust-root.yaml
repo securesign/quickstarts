@@ -1,0 +1,9 @@
+apiVersion: policy.sigstore.dev/v1alpha1
+kind: TrustRoot
+metadata:
+  name: rhtas-trust-root
+spec:
+  remote:
+    mirror: $TUF_URL
+    root: | 
+      $BASE64_TUF_ROOT
