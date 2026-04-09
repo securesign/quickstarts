@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: policy-controller-operator
+  namespace: openshift-operators
+spec:
+  installPlanApproval: Automatic
+  name: policy-controller-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
