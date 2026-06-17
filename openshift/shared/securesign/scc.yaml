@@ -1,15 +1,62 @@
-# Workaround for RHTAS operator v1.4.x applying runAsUser/fsGroup 1001 when OpenShift
-# platform detection fails. Grants anyuid to component SAs that
-# use persistent volumes and may receive the hardcoded UID.
+# RHTAS operator v1.4.x may apply runAsUser: 1001 and fsGroup: 1001 when OpenShift
+# platform auto-detection fails. OpenShift restricted-v2 rejects that UID (it expects
+# the namespace-assigned range, e.g. 1000810000-1000819999), so rekor-server,
+# trillian-db, and tuf pods fail with FailedCreate events.
+#
+# This file grants a custom SCC scoped to UID/GID 1001 only (not the broader anyuid
+# SCC) to the rekor, trillian-db, and tuf service accounts. Remove scc.yaml from
+# openshift/shared/securesign/kustomization.yaml once the operator no longer requires it.
+---
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: rhtas-operator-uid
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: MustRunAs
+  ranges:
+    - min: 1001
+      max: 1001
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+  - KILL
+  - MANDATORY
+  - SETUID
+  - SETGID
+runAsUser:
+  type: MustRunAs
+  uid: 1001
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users: []
+groups: []
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rekor-anyuid
+  name: rekor-rhtas-operator-uid
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: system:openshift:scc:anyuid
+  name: system:openshift:scc:rhtas-operator-uid
 subjects:
   - kind: ServiceAccount
     name: rekor
@@ -17,11 +64,11 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: trillian-db-anyuid
+  name: trillian-db-rhtas-operator-uid
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: system:openshift:scc:anyuid
+  name: system:openshift:scc:rhtas-operator-uid
 subjects:
   - kind: ServiceAccount
     name: trillian-db
@@ -29,11 +76,11 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tuf-anyuid
+  name: tuf-rhtas-operator-uid
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: system:openshift:scc:anyuid
+  name: system:openshift:scc:rhtas-operator-uid
 subjects:
   - kind: ServiceAccount
     name: tuf
