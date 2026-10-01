@@ -1,9 +1,9 @@
 apiVersion: rhtas.redhat.com/v1alpha1
 kind: Securesign
 metadata:
+  name: trusted-artifact-signer
   annotations:
     rhtas.redhat.com/metrics: 'false'
-  name: trusted-artifact-signer
   labels:
     app.kubernetes.io/instance: trusted-artifact-signer
     app.kubernetes.io/name: trusted-artifact-signer
@@ -14,19 +14,20 @@ spec:
       enabled: true
   fulcio:
     certificate:
-      commonName: PLACEHOLDER
+      commonName: fulcio-rhtas-testing.${APPS_DOMAIN}
       organizationEmail: rhtas@redhat.com
       organizationName: Red Hat
     config:
+      # The in-cluster Cosign jobs use these OIDC issuers.
       OIDCIssuers:
         - ClientID: trusted-artifact-signer
-          Issuer: 'https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer'
-          IssuerURL: 'https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer'
+          Issuer: https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer
+          IssuerURL: https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer
           Type: email
         - ClientID: sigstore
-          Issuer: 'https://oauth2.sigstore.dev/auth'
+          Issuer: https://oauth2.sigstore.dev/auth
           IssuerClaim: $.federated_claims.connector_id
-          IssuerURL: 'https://oauth2.sigstore.dev/auth'
+          IssuerURL: https://oauth2.sigstore.dev/auth
           Type: email
         - ClientID: sigstore
           Issuer: https://kubernetes.default.svc
@@ -34,7 +35,7 @@ spec:
           Type: kubernetes
       MetaIssuers:
         - ClientID: sigstore
-          Issuer: "https://*.*.*.amazonaws.com/*"
+          Issuer: https://*.*.*.amazonaws.com/*
           Type: kubernetes
     externalAccess:
       enabled: true
@@ -65,15 +66,15 @@ spec:
     signer:
       certificateChain:
         intermediateCA:
-          - commonName: PLACEHOLDER
+          - commonName: tsa-server-rhtas-testing.${APPS_DOMAIN}
             organizationEmail: jdoe@redhat.com
             organizationName: Red Hat
         leafCA:
-          commonName: PLACEHOLDER
+          commonName: tsa-server-rhtas-testing.${APPS_DOMAIN}
           organizationEmail: jdoe@redhat.com
           organizationName: Red Hat
         rootCA:
-          commonName: PLACEHOLDER
+          commonName: tsa-server-rhtas-testing.${APPS_DOMAIN}
           organizationEmail: jdoe@redhat.com
           organizationName: Red Hat
   tuf:

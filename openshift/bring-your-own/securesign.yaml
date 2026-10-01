@@ -1,0 +1,114 @@
+apiVersion: rhtas.redhat.com/v1
+kind: Securesign
+metadata:
+  name: trusted-artifact-signer
+spec:
+  ctlog:
+    logs:
+      - prefix: trusted-artifact-signer
+        active: true
+        signer:
+          type: file
+          file:
+            privateKeyRef:
+              name: ctlog-signer
+              key: key
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+  fulcio:
+    config:
+      oidcIssuers:
+        - clientID: trusted-artifact-signer
+          issuer: https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer
+          issuerURL: https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer
+          type: email
+        - clientID: sigstore
+          issuer: https://oauth2.sigstore.dev/auth
+          issuerClaim: $.federated_claims.connector_id
+          issuerURL: https://oauth2.sigstore.dev/auth
+          type: email
+        - clientID: sigstore
+          issuer: https://kubernetes.default.svc
+          issuerURL: https://kubernetes.default.svc
+          type: kubernetes
+      metaIssuers:
+        - clientID: sigstore
+          issuer: https://*.*.*.amazonaws.com/*
+          type: kubernetes
+    ingress:
+      enabled: true
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+    signer:
+      certificateChain:
+        certificateChainRef:
+          name: fulcio-public
+          key: cert
+      file:
+        privateKeyRef:
+          name: fulcio-signer
+          key: key
+  rekor:
+    ingress:
+      enabled: true
+    backFillRedis:
+      enabled: true
+      schedule: 0 0 * * *
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+    signer:
+      type: secret
+      keyRef:
+        name: rekor-signer
+        key: key
+  trillian:
+    database:
+      create: false
+      provider: mysql
+      uri: $(MYSQL_USER):$(MYSQL_PASSWORD)@tcp(mariadb.rhtas-mariadb.svc:3306)/trillian
+    auth:
+      env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mariadb
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mariadb
+              key: mysql-password
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+  tsa:
+    ingress:
+      enabled: true
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+    signer:
+      certificateChain:
+        certificateChainRef:
+          name: tsa-public
+          key: chain
+      file:
+        privateKeyRef:
+          name: tsa-signer
+          key: key
+  tuf:
+    ingress:
+      enabled: true

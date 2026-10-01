@@ -1,0 +1,78 @@
+apiVersion: rhtas.redhat.com/v1
+kind: Securesign
+metadata:
+  name: trusted-artifact-signer
+  namespace: rhtas-gateway-api
+  labels:
+    app.kubernetes.io/instance: trusted-artifact-signer
+    app.kubernetes.io/name: trusted-artifact-signer
+    app.kubernetes.io/part-of: trusted-artifact-signer
+spec:
+  ctlog:
+    logs:
+      - prefix: trusted-artifact-signer
+        active: true
+    ingress:
+      enabled: false
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+  fulcio:
+    config:
+      # These issuers are used by the existing in-cluster Cosign CronJobs.
+      oidcIssuers:
+        - clientID: trusted-artifact-signer
+          issuer: https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer
+          issuerURL: https://keycloak-keycloak-system.${APPS_DOMAIN}/auth/realms/trusted-artifact-signer
+          type: email
+        - clientID: sigstore
+          issuer: https://oauth2.sigstore.dev/auth
+          issuerClaim: $.federated_claims.connector_id
+          issuerURL: https://oauth2.sigstore.dev/auth
+          type: email
+        - clientID: sigstore
+          issuer: https://kubernetes.default.svc
+          issuerURL: https://kubernetes.default.svc
+          type: kubernetes
+      metaIssuers:
+        - clientID: sigstore
+          issuer: https://*.*.*.amazonaws.com/*
+          type: kubernetes
+    ingress:
+      enabled: false
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+    signer:
+      certificateChain:
+        commonName: fulcio-rhtas-testing.${APPS_DOMAIN}
+        organizationEmail: rhtas@redhat.com
+        organizationName: Red Hat
+  rekor:
+    ingress:
+      enabled: false
+    backFillRedis:
+      enabled: true
+      schedule: 0 0 * * *
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+    signer:
+      type: secret
+  trillian:
+    database:
+      create: true
+    monitoring:
+      metrics:
+        enabled: true
+      serviceMonitor:
+        enabled: true
+  tuf:
+    ingress:
+      enabled: false

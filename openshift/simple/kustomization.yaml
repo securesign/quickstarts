@@ -4,13 +4,11 @@ namespace: rhtas-simple
 
 resources:
 - namespace.yaml
-- ../shared/securesign
+- securesign.yaml
+- console.yaml
 - ../shared/cosign
 
 labels:
 - includeSelectors: true
   pairs:
     environment: testing
-
-patches:
-  - path: patch.yaml

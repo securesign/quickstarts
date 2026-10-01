@@ -1,6 +1,25 @@
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
+  name: ctlog
+  namespace: rhtas-gateway-api
+  labels:
+    ingresscontroller: rhtas-com
+spec:
+  path: /
+  to:
+    kind: Service
+    name: ctlog-gateway-istio
+    weight: 100
+  port:
+    targetPort: 443
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
   name: fulcio
   namespace: rhtas-gateway-api
   labels:
@@ -12,9 +31,9 @@ spec:
     name: fulcio-gateway-istio
     weight: 100
   port:
-    targetPort: http
+    targetPort: 443
   tls:
-    termination: edge
+    termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect
 ---
 kind: Route
@@ -31,28 +50,9 @@ spec:
     name: rekor-gateway-istio
     weight: 100
   port:
-    targetPort: http
+    targetPort: 443
   tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
----
-kind: Route
-apiVersion: route.openshift.io/v1
-metadata:
-  name: search
-  namespace: rhtas-gateway-api
-  labels:
-    ingresscontroller: rhtas-com
-spec:
-  path: /
-  to:
-    kind: Service
-    name: search-ui-gateway-istio
-    weight: 100
-  port:
-    targetPort: http
-  tls:
-    termination: edge
+    termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect
 ---
 kind: Route
@@ -69,7 +69,7 @@ spec:
     name: tuf-gateway-istio
     weight: 100
   port:
-    targetPort: http
+    targetPort: 443
   tls:
-    termination: edge
+    termination: reencrypt
     insecureEdgeTerminationPolicy: Redirect
