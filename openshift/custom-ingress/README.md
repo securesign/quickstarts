@@ -1,10 +1,10 @@
 # Custom Ingress Configuration
 
-This scenario demonstrates how to set up custom ingress for TAS services by turning off `externalAccess` on RHTAS CRDs.
+This scenario demonstrates how to set up custom ingress for TAS services by setting `ingress.enabled: false` for each service in the v1 Securesign resource.
 This prevents the automatic creation of Routes/Ingress. After disabling, you can manually create and manage your own
 Route/Ingress with the specific configurations you require, like TLS settings, hostnames, and annotations.
 
-Examples of Routes can be found in the `routes/` directory for Fulcio, Rekor, Search UI, TimestampAuthority and TUF.
+Examples of Routes can be found in the `routes/` directory for Fulcio, Rekor, TimestampAuthority and TUF.
 
 ## Prerequisites
 

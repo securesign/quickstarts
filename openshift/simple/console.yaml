@@ -1,0 +1,17 @@
+apiVersion: rhtas.redhat.com/v1
+kind: Console
+metadata:
+  name: trusted-artifact-signer
+spec:
+  ui:
+    ingress:
+      enabled: true
+    rekor:
+      ref:
+        name: trusted-artifact-signer
+        namespace: rhtas-simple
+  api:
+    tuf:
+      ref:
+        name: trusted-artifact-signer
+        namespace: rhtas-simple

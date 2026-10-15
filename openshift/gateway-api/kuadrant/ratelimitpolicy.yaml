@@ -1,6 +1,24 @@
 apiVersion: kuadrant.io/v1
 kind: RateLimitPolicy
 metadata:
+  name: ctlog
+  namespace: rhtas-gateway-api
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: ctlog
+  limits:
+    "per-user":
+      rates:
+        - limit: 5
+          window: 10s
+      counters:
+        - expression: auth.identity.userid
+---
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
   name: fulcio
   namespace: rhtas-gateway-api
 spec:
@@ -48,24 +66,6 @@ spec:
     "per-user":
       rates:
         - limit: 50
-          window: 10s
-      counters:
-        - expression: auth.identity.userid
----
-apiVersion: kuadrant.io/v1
-kind: RateLimitPolicy
-metadata:
-  name: search-ui
-  namespace: rhtas-gateway-api
-spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    name: search-ui
-  limits:
-    "per-user":
-      rates:
-        - limit: 100
           window: 10s
       counters:
         - expression: auth.identity.userid

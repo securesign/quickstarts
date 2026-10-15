@@ -1,0 +1,11 @@
+[req]
+distinguished_name = dn
+[dn]
+[ca]
+basicConstraints = critical,CA:true
+keyUsage = critical,keyCertSign,cRLSign
+[timestamp]
+basicConstraints = critical,CA:false
+keyUsage = critical,digitalSignature
+extendedKeyUsage = critical,timeStamping
+authorityKeyIdentifier = keyid,issuer

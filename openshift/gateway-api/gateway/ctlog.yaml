@@ -1,0 +1,58 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ctlog-gateway
+  namespace: rhtas-gateway-api
+  labels:
+    kuadrant.io/gateway: "true"
+spec:
+  infrastructure:
+    annotations:
+      service.beta.openshift.io/serving-cert-secret-name: ctlog-gateway-tls
+  gatewayClassName: istio
+  listeners:
+    - name: https
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: ctlog-gateway-tls
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ctlog
+  namespace: rhtas-gateway-api
+spec:
+  parentRefs:
+    - name: ctlog-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /trusted-artifact-signer
+      backendRefs:
+        - name: ctlog
+          port: 443
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: ctlog-backend-tls
+  namespace: rhtas-gateway-api
+spec:
+  host: ctlog.rhtas-gateway-api.svc.cluster.local
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 443
+        tls:
+          mode: SIMPLE
+          sni: ctlog.rhtas-gateway-api.svc
+          subjectAltNames:
+            - ctlog.rhtas-gateway-api.svc
+          caCertificates: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt

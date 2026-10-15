@@ -6,11 +6,18 @@ metadata:
   labels:
     kuadrant.io/gateway: "true"
 spec:
+  infrastructure:
+    annotations:
+      service.beta.openshift.io/serving-cert-secret-name: tuf-gateway-tls
   gatewayClassName: istio
   listeners:
-    - name: http
-      port: 80
-      protocol: HTTP
+    - name: https
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tuf-gateway-tls
       allowedRoutes:
         namespaces:
           from: All

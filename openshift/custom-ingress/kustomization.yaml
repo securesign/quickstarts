@@ -6,15 +6,11 @@ resources:
 - namespace.yaml
 - routes/fulcio.yaml
 - routes/rekor.yaml
-- routes/search-ui.yaml
 - routes/tsa.yaml
 - routes/tuf.yaml
-- ../shared/securesign
+- securesign.yaml
 
 labels:
 - includeSelectors: true
   pairs:
     environment: custom-ingress
-
-patches:
-  - path: patch.yaml

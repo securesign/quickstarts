@@ -12,10 +12,7 @@ all: deploy
 deploy:
 	@echo "Detected OpenShift Cluster Domain: $${CLUSTER_DOMAIN}"
 
-	# Copy the template to the active config file before sed
-	cp dex-config.yaml.template dex-config.yaml
-
-	sed -i "s|https://dex-idp-route-dex-idp.<your-cluster-domain>|https://dex-idp-route-$(NAMESPACE).${CLUSTER_DOMAIN}|g" dex-config.yaml
+	sed "s|https://dex-idp-route-dex-idp.<your-cluster-domain>|https://dex-idp-route-$(NAMESPACE).${CLUSTER_DOMAIN}|g" dex-config.yaml.template > dex-config.yaml
 
 	@for file in $(MANIFESTS); do \
 		echo "Applying $$file..."; \
